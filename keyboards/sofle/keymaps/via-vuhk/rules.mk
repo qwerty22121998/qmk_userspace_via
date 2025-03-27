@@ -5,8 +5,7 @@ WPM_ENABLE = yes
 SPLIT_KEYBOARD = yes
 EXTRAKEY_ENABLE = yes
 LTO_ENABLE = yes
-WS2812_DRIVER = bitbang
-
+OLED_ENABLE = yes
 
 
 # Optimize size

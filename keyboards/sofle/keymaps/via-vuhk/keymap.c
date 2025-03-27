@@ -16,7 +16,49 @@
  */
 
 #include QMK_KEYBOARD_H
-#include "bongocat.c"
+
+#ifdef OLED_ENABLE
+led_t    led_usb_state;
+uint32_t oled_timer = 0; // OLED timeout
+
+static void render_status(void) {
+    // Print current layer
+    oled_set_cursor(0, 0);
+    oled_write("VUHK", false);
+
+    oled_set_cursor(0, 2);
+    layer_state_t l = get_highest_layer(layer_state);
+    oled_write("LAYER", false);
+    oled_set_cursor(0, 3);
+    oled_write_ln("Base", l == 0);
+    oled_set_cursor(0, 4);
+    oled_write_ln("Lower", l == 1);
+    oled_set_cursor(0, 5);
+    oled_write_ln("Raise", l == 2);
+    /* lock status */
+    oled_set_cursor(0, 7);
+    oled_write_ln("LOCK", false);
+    oled_write_ln("Caps", led_usb_state.caps_lock);
+    oled_write_ln("Num", !(led_usb_state.num_lock));
+    oled_write_ln("Scrl", led_usb_state.scroll_lock);
+
+#    ifndef DISABLE_LEFT_WPM
+    oled_set_cursor(0, 12);
+    oled_write_P(PSTR("WPM: "), false);
+    oled_write(get_u8_str(get_current_wpm(), ' '), false);
+#    endif
+}
+
+#    ifdef BONGO_CAT
+#        include "animation/bongocat.c"
+#    endif
+#    ifdef SUGAR
+#        include "animation/sugar.c"
+#    endif
+#    ifdef LUNA
+#        include "animation/luna.c"
+#    endif
+#endif
 
 #ifdef ENCODER_MAP_ENABLE
 const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][NUM_DIRECTIONS] = {[0] = {ENCODER_CCW_CW(KC_VOLD, KC_VOLU), ENCODER_CCW_CW(KC_PGDN, KC_PGUP)}, [1] = {ENCODER_CCW_CW(RGB_HUD, RGB_HUI), ENCODER_CCW_CW(RGB_SAD, RGB_SAI)}, [2] = {ENCODER_CCW_CW(RGB_VAD, RGB_VAI), ENCODER_CCW_CW(RGB_RMOD, RGB_MOD)}};
@@ -73,7 +115,72 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) { // OLED timeout code
+#ifdef OLED_ENABLE
         oled_timer = timer_read32();
+#    ifdef SUGAR
+        keyCntr += 1;
+        transaction_rpc_send(USER_SYNC_KEY_CNTR, sizeof(keyCntr), &keyCntr);
+#    endif
+#endif
     }
+
+#ifdef LUNA
+    switch (keycode) {
+        case KC_RSFT:
+        case KC_LSFT:
+            if (record->event.pressed) {
+                isBarking = true;
+            } else {
+                isBarking = false;
+            }
+            return true;
+        case KC_LCTL:
+        case KC_RCTL:
+            if (record->event.pressed) {
+                isSneaking = true;
+            } else {
+                isSneaking = false;
+            }
+            return true;
+        case KC_SPC:
+            if (record->event.pressed) {
+                isJumping  = true;
+                showedJump = false;
+            } else {
+                isJumping = false;
+            }
+            return true;
+    }
+#endif
     return true;
 }
+
+void keyboard_post_init_user(void) {
+    // Enable the LED layers
+#ifdef OLED_ENABLE
+#    ifdef SUGAR
+    transaction_register_rpc(USER_SYNC_KEY_CNTR, user_sync_a_update_keyCntr_on_other_board);
+#    endif
+    oled_clear();
+#endif
+}
+
+#ifdef OLED_ENABLE
+
+oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+    return OLED_ROTATION_270;
+}
+bool oled_task_user(void) {
+#    ifdef BONGO_CAT
+    bongo_oled_task();
+#    endif
+#    ifdef LUNA
+    luna_oled_task();
+#    endif
+#    ifdef SUGAR
+    sugar_task_user();
+#    endif
+
+    return false;
+}
+#endif
