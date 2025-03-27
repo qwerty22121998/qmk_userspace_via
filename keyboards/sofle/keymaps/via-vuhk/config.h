@@ -1,0 +1,6 @@
+#pragma once
+
+#define SPLIT_USB_DETECT
+#define SPLIT_WPM_ENABLE
+#define DYNAMIC_KEYMAP_LAYER_COUNT 3
+
