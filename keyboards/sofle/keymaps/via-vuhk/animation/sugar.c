@@ -1,7 +1,7 @@
 #ifdef OLED_ENABLE
 #    include "transactions.h"
 uint16_t keyCntr = 0;
-#    define OLED_SUGAR_HEIGHT 128
+#    define OLED_SUGAR_HEIGHT 104
 
 #    define OLED_SUGAR_WIDTH 32
 
@@ -162,7 +162,7 @@ void oled_sugar(void) {
         }
     }
     rand_basic(); // just here to rotate the seed
-    if (is_oled_on()){
+    if (is_oled_on()) {
         oled_write_raw(pixels, OLED_SUGAR_BYTES);
     }
 }
@@ -179,6 +179,9 @@ bool sugar_task_user(void) {
         render_status();
     } else {
         oled_sugar();
+        oled_set_cursor(0, 14);
+        oled_write_P(PSTR("WPM: "), false);
+        oled_write(get_u8_str(get_current_wpm(), ' '), false);
     }
     return false;
 }
