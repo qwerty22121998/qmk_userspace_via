@@ -162,13 +162,7 @@ void oled_sugar(void) {
         }
     }
     rand_basic(); // just here to rotate the seed
-    if (!is_oled_on()) {
-        // OLED timedout so we will clear everything and start fresh
-        memset(pixels, 0, OLED_SUGAR_BYTES);
-        memset(activeSugar, -1, OLED_SUGAR_HEIGHT);
-        oled_clear();
-        pixelInvert = false;
-    } else {
+    if (is_oled_on()){
         oled_write_raw(pixels, OLED_SUGAR_BYTES);
     }
 }
