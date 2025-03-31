@@ -157,20 +157,8 @@ static void render_pet(void) {
 bool luna_oled_task(void) {
     /* KEYBOARD PET VARIABLES START */
     current_wpm_read = get_current_wpm();
-    led_usb_state    = host_keyboard_led_state();
     /* KEYBOARD PET VARIABLES END */
-
-    if (is_keyboard_master()) { // Drashna's OLED timeout off code for animations
-        if (timer_elapsed32(oled_timer) > 30000) {
-            oled_off();
-            return false;
-        } else {
-            oled_on();
-        }
-    }
-
     if (is_keyboard_master()) {
-        render_status();
         render_pet();
     }
     return false;

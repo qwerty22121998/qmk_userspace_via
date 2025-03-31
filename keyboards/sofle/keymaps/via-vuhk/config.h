@@ -3,10 +3,14 @@
 #define SPLIT_USB_DETECT
 #define SPLIT_WPM_ENABLE
 #define DYNAMIC_KEYMAP_LAYER_COUNT 3
-#define OLED_TIMER 30000 // OLED timeout in ms
+#define OLED_TIMER 60000 // OLED timeout in ms
+
+#define NO_ACTION_ONESHOT
+
 
 #define LUNA
-#define SUGAR
+// #define SUGAR
+#define BONGO_CAT
 
 #ifdef SUGAR
 #    define SPLIT_TRANSACTION_IDS_USER USER_SYNC_KEY_CNTR

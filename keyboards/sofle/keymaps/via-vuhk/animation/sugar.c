@@ -168,21 +168,10 @@ void oled_sugar(void) {
 }
 
 bool sugar_task_user(void) {
-    led_usb_state = host_keyboard_led_state();
-    if (is_keyboard_master()) {
-        if (timer_elapsed32(oled_timer) > OLED_TIMER) {
-            oled_off();
-            return false;
-        } else {
-            oled_on();
-        }
-        render_status();
-    } else {
-        oled_sugar();
-        oled_set_cursor(0, 14);
-        oled_write_P(PSTR("WPM: "), false);
-        oled_write(get_u8_str(get_current_wpm(), ' '), false);
-    }
+    oled_sugar();
+    oled_set_cursor(0, 14);
+    oled_write_P(PSTR("WPM: "), false);
+    oled_write(get_u8_str(get_current_wpm(), ' '), false);
     return false;
 }
 

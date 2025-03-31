@@ -20,6 +20,19 @@
 #ifdef OLED_ENABLE
 led_t    led_usb_state;
 uint32_t oled_timer = 0; // OLED timeout
+char    *prevLayer  = "Win";
+
+static bool oled_sleep(void) {
+    if (is_keyboard_master()) {
+        if (timer_elapsed32(oled_timer) > OLED_TIMER) {
+            oled_off();
+            return true;
+        } else {
+            oled_on();
+        }
+    }
+    return false;
+}
 
 static void render_status(void) {
     // Print current layer
@@ -28,19 +41,26 @@ static void render_status(void) {
 
     oled_set_cursor(0, 2);
     layer_state_t l = get_highest_layer(layer_state);
-    oled_write("LAYER", false);
+    oled_write("OS", false);
+    if (l == 0) {
+        prevLayer = "Win";
+    }
+    if (l == 1) {
+        prevLayer = "Mac";
+    }
     oled_set_cursor(0, 3);
-    oled_write_ln("Base", l == 0);
+    oled_write(prevLayer, false);
     oled_set_cursor(0, 4);
-    oled_write_ln("Lower", l == 1);
-    oled_set_cursor(0, 5);
-    oled_write_ln("Raise", l == 2);
+    oled_write_ln(l == 2 ? " Fn  " : "", l == 2);
     /* lock status */
+    oled_set_cursor(0, 6);
+    oled_write("LOCK", false);
     oled_set_cursor(0, 7);
-    oled_write_ln("LOCK", false);
-    oled_write_ln("Caps", led_usb_state.caps_lock);
-    oled_write_ln("Num", !(led_usb_state.num_lock));
-    oled_write_ln("Scrl", led_usb_state.scroll_lock);
+    oled_write("Caps ", led_usb_state.caps_lock);
+    oled_set_cursor(0, 8);
+    oled_write("Num  ", led_usb_state.num_lock);
+    oled_set_cursor(0, 9);
+    oled_write("Scrl ", led_usb_state.scroll_lock);
 
 #    ifndef DISABLE_LEFT_WPM
     oled_set_cursor(0, 12);
@@ -171,6 +191,16 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
     return OLED_ROTATION_270;
 }
 bool oled_task_user(void) {
+    led_usb_state = host_keyboard_led_state();
+
+    if (oled_sleep()) {
+        return false;
+    }
+
+    if (is_keyboard_master()) {
+        render_status();
+    }
+
 #    ifdef BONGO_CAT
     bongo_oled_task();
 #    endif

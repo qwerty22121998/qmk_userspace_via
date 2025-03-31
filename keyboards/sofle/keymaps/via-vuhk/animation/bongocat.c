@@ -5,7 +5,6 @@ https://github.com/foureight84/qmk_firmware/tree/sofle_foureight84 */
 
 #ifdef OLED_ENABLE
 
-
 /* Animation bit by j-inc https://github.com/qmk/qmk_firmware/tree/master/keyboards/kyria/keymaps/j-inc */
 // WPM-responsive animation stuff here
 #    define IDLE_FRAMES 5
@@ -20,8 +19,8 @@ https://github.com/foureight84/qmk_firmware/tree/sofle_foureight84 */
 // #define SLEEP_TIMER 60000 // should sleep after this period of 0 wpm, needs fixing
 #    define BONGO_ANIM_SIZE 320 // number of bytes in array, minimize for adequate firmware size, max is 1024
 
-uint32_t bongo_anim_timer         = 0;
-uint32_t bongo_anim_sleep         = 0;
+uint32_t bongo_anim_timer   = 0;
+uint32_t bongo_anim_sleep   = 0;
 uint8_t  current_idle_frame = 0;
 // uint8_t current_prep_frame = 0; // uncomment if PREP_FRAMES >1
 uint8_t current_tap_frame = 0;
@@ -73,18 +72,12 @@ static void render_anim(void) {
 }
 
 bool bongo_oled_task(void) {
-    led_usb_state = host_keyboard_led_state();
-    if (is_keyboard_master()) {
-        if (timer_elapsed32(oled_timer) > OLED_TIMER) {
-            oled_off();
-            return false;
-        } else {
-            oled_on();
-        }
-        render_status();
-    } else {
-        oled_set_cursor(0, 3);
+    if (!is_keyboard_master()) {
+        oled_set_cursor(0, 2);
         render_anim();
+        oled_set_cursor(0, 14);
+        oled_write_P(PSTR("WPM: "), false);
+        oled_write(get_u8_str(get_current_wpm(), ' '), false);
     }
     return false;
 }
